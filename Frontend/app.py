@@ -143,6 +143,17 @@ label[data-testid="stWidgetLabel"] {
     box-shadow: 0 6px 20px rgba(0,199,118,0.4);
 }
 
+section[data-testid="stSidebar"] .stButton button {
+    padding: 0.35rem 0.4rem !important;
+    font-size: 0.76rem !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+}
+section[data-testid="stSidebar"] .stButton button p {
+    font-size: 0.76rem !important;
+}
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,255,153,0.3); border-radius: 6px; }
@@ -293,13 +304,40 @@ with st.sidebar:
     st.markdown("---")
 
     st.markdown("### 🔧 Filters")
-    sel_cities = st.multiselect("Cities", cities, default=cities[:5])
+    
+    # Quick selection controls for cities
+    city_preset = st.radio(
+        "Quick City Selection",
+        ["All (26)", "Top 10", "Top 5", "Custom"],
+        horizontal=True,
+        index=2,
+        label_visibility="collapsed",
+    )
+
+    if city_preset == "All (26)":
+        pre_sel = list(cities)
+    elif city_preset == "Top 10":
+        pre_sel = list(cities[:10])
+    elif city_preset == "Top 5":
+        pre_sel = list(cities[:5])
+    else:
+        pre_sel = st.session_state.get("selected_cities", cities[:5])
+
+    sel_cities = st.multiselect(
+        "Cities",
+        options=cities,
+        default=pre_sel,
+        key="selected_cities" if city_preset == "Custom" else None,
+        help=f"Select individual cities or use the preset pills above (Total: {len(cities)} cities)"
+    )
+
     year_range = st.slider("Year Range", 2015, 2020, (2015, 2020))
 
     st.markdown("---")
     st.caption("Data: CPCB / Kaggle — India 2015-2020  \n26 cities • 24,850 records")
 
 df_f = df[df["City"].isin(sel_cities) & df["Year"].between(*year_range)] if sel_cities else df[df["Year"].between(*year_range)]
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
